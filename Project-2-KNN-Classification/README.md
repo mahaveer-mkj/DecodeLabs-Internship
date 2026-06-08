@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🌸 Iris KNN Classification Pipeline
-### DecodeLabs Training Kit — Project 2: Data Classification Using AI
+### DecodeLabs — Project 2: Data Classification Using AI
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)
@@ -193,7 +193,7 @@ F1 Score   =  2 × (P × R) / (P + R)   →  honest balance of both
 
 ## 📚 Project Context
 
-This project is part of the **DecodeLabs Training Kit**, developed during my AI internship at [DecodeLabs](https://www.decodelabs.tech/). Project 2 specifically demonstrates the transition from heuristic rule-based logic to **Supervised Machine Learning** — where the algorithm learns patterns from labelled data rather than relying on hand-crafted rules.
+This project was assigned and completed during my AI internship at [DecodeLabs](https://www.decodelabs.tech/). Project 2 specifically demonstrates the transition from heuristic rule-based logic to **Supervised Machine Learning** — where the algorithm learns patterns from labelled data rather than relying on hand-crafted rules.
 
 **Dataset:** [UCI Iris Dataset](https://archive.ics.uci.edu/ml/datasets/iris) — 150 samples, 3 balanced classes, 4 features.
 
