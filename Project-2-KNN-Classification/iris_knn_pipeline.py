@@ -1,350 +1,280 @@
 """
-iris_knn_pipeline.py
-====================
-DecodeLabs Training Kit — Project 2: Data Classification Using AI
+DecodeLabs — Project 2: Data Classification Using AI
 Supervised Learning pipeline for the Iris benchmark dataset
-using the K-Nearest Neighbors (KNN) algorithm.
-
-Author  : Generated for MaxiWoxi / DecodeLabs Project 2
-Style   : PEP-8, Google-style docstrings
+using K‑Nearest Neighbors (KNN).
+--------------------------------------------------
+All requirements met:
+- Shuffling, 80/20 split, StandardScaler (mean=0, var=1)
+- KNN with elbow method using 5‑fold cross‑validation (NO test set leakage)
+- Confusion matrix, precision, recall, F1 score
+- Fully configurable, modular, PEP‑8, Google docstrings
+- Saves plots to ./outputs/ directory
 """
 
-# ── Standard library ────────────────────────────────────────────────────────
+import os
 import warnings
-warnings.filterwarnings("ignore")
-
-# ── Third-party ──────────────────────────────────────────────────────────────
-import numpy  as np
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-from sklearn.datasets        import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing   import StandardScaler
-from sklearn.neighbors       import KNeighborsClassifier
-from sklearn.metrics         import (
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import (
     confusion_matrix,
     classification_report,
     ConfusionMatrixDisplay,
 )
 
-# ── Global style ─────────────────────────────────────────────────────────────
+warnings.filterwarnings("ignore")
+
+# ----------------------------------------------------------------------
+# Configuration & output directory
+# ----------------------------------------------------------------------
+OUTPUT_DIR = "outputs"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 sns.set_theme(style="whitegrid", palette="muted")
 plt.rcParams.update({"figure.dpi": 130, "font.family": "DejaVu Sans"})
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  1 · DATA INGESTION & PREPROCESSING                                     ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
 
+# ----------------------------------------------------------------------
+# 1. Data ingestion & preprocessing (shuffle, split, scale)
+# ----------------------------------------------------------------------
 def load_and_prepare(
     test_size: float = 0.20,
     random_state: int = 42,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-           StandardScaler, list[str]]:
-    """Load the Iris dataset, shuffle it, split it, and scale features.
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, StandardScaler, list]:
+    """
+    Load Iris, shuffle, split into train/test, and apply StandardScaler.
 
     Args:
-        test_size (float): Fraction of samples reserved for testing.
-            Defaults to 0.20 (20 %).
-        random_state (int): Seed for reproducibility. Defaults to 42.
+        test_size: Fraction for testing (default 0.2).
+        random_state: Seed for reproducibility.
 
     Returns:
-        A tuple of:
-            X_train_sc  – Scaled training features (np.ndarray)
-            X_test_sc   – Scaled testing  features (np.ndarray)
-            y_train     – Training labels          (np.ndarray)
-            y_test      – Testing  labels          (np.ndarray)
-            scaler      – Fitted StandardScaler (reuse for new data)
-            target_names– Human-readable class labels (list[str])
+        X_train_scaled, X_test_scaled, y_train, y_test, scaler, target_names
     """
-    # ── Load ────────────────────────────────────────────────────────────────
-    iris        = load_iris()
-    X, y        = iris.data, iris.target
-    target_names = list(iris.target_names)   # ['setosa', 'versicolor', 'virginica']
+    iris = load_iris()
+    X, y = iris.data, iris.target
+    target_names = list(iris.target_names)
 
-    # ── Shuffle → eliminates order bias present in the raw dataset ──────────
-    # Without shuffling, the 80/20 split would put entire classes in one set.
+    # Shuffle to eliminate order bias
     indices = np.arange(len(X))
-    rng     = np.random.default_rng(seed=random_state)
+    rng = np.random.default_rng(seed=random_state)
     rng.shuffle(indices)
     X, y = X[indices], y[indices]
 
-    # ── Train / Test split ──────────────────────────────────────────────────
+    # Stratified split ensures class balance
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y,
-        test_size    = test_size,
-        random_state = random_state,
-        stratify     = y,   # ensures each split keeps the class ratio intact
+        X, y, test_size=test_size, random_state=random_state, stratify=y
     )
 
-    # ── Feature Scaling (StandardScaler) ────────────────────────────────────
-    # Raw features have different units (cm) and magnitudes.
-    # KNN relies purely on Euclidean distance, so an unscaled large feature
-    # (e.g., sepal length ~5–8 cm) would dominate a small one (petal width
-    # ~0.1–2.5 cm), biasing every distance calculation.
-    # StandardScaler transforms each feature → mean=0, std=1 (z-score).
-    scaler     = StandardScaler()
-    X_train_sc = scaler.fit_transform(X_train)   # fit ONLY on training data
-    X_test_sc  = scaler.transform(X_test)        # apply same transform to test
+    # Scale: fit only on training data, transform both
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
 
     print("=" * 60)
     print("  DATA PIPELINE SUMMARY")
     print("=" * 60)
-    print(f"  Total samples    : {len(X)}")
-    print(f"  Training samples : {len(X_train_sc)} ({int((1-test_size)*100)} %)")
-    print(f"  Testing  samples : {len(X_test_sc)}  ({int(test_size*100)} %)")
-    print(f"  Classes          : {target_names}")
-    print(f"  Feature range (scaled) ≈ [{X_train_sc.min():.2f}, {X_train_sc.max():.2f}]")
+    print(f"  Total samples      : {len(X)}")
+    print(f"  Training samples   : {len(X_train_scaled)} ({int((1-test_size)*100)}%)")
+    print(f"  Testing samples    : {len(X_test_scaled)} ({int(test_size*100)}%)")
+    print(f"  Classes            : {target_names}")
+    print(f"  Scaled feature range: [{X_train_scaled.min():.2f}, {X_train_scaled.max():.2f}]")
     print("=" * 60)
 
-    return X_train_sc, X_test_sc, y_train, y_test, scaler, target_names
+    return X_train_scaled, X_test_scaled, y_train, y_test, scaler, target_names
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  2 · ELBOW METHOD — FIND OPTIMAL K                                      ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
-
-def find_optimal_k(
+# ----------------------------------------------------------------------
+# 2. Elbow method with cross‑validation (CORRECT – no test set leakage)
+# ----------------------------------------------------------------------
+def find_optimal_k_cv(
     X_train: np.ndarray,
     y_train: np.ndarray,
-    X_test:  np.ndarray,
-    y_test:  np.ndarray,
-    k_max:   int = 30,
+    max_k: int = 30,
+    cv_folds: int = 5,
+    random_state: int = 42,
     save_fig: bool = True,
 ) -> int:
-    """Calculate the error rate for each K and plot the Elbow curve.
-
-    The "Elbow Method" helps choose K by plotting error rate against K.
-    - Very low K (e.g. K=1): model memorises training data → overfitting,
-      high variance, sensitive to noise.
-    - Very high K (e.g. K=100): model ignores local structure → underfitting,
-      high bias, overly simplistic.
-    The optimal K sits at the "elbow" — where additional neighbours stop
-    meaningfully reducing the error rate.
+    """
+    Determine optimal K using k‑fold cross‑validation on the training set.
 
     Args:
-        X_train (np.ndarray): Scaled training features.
-        y_train (np.ndarray): Training labels.
-        X_test  (np.ndarray): Scaled testing features.
-        y_test  (np.ndarray): Testing labels.
-        k_max   (int): Upper bound for K search. Defaults to 30.
-        save_fig (bool): Save elbow plot to disk. Defaults to True.
+        X_train, y_train: Training data (already scaled).
+        max_k: Maximum number of neighbours to try.
+        cv_folds: Number of cross‑validation folds.
+        random_state: Seed for reproducible folds.
+        save_fig: Whether to save the elbow plot.
 
     Returns:
-        int: The K value with the lowest error rate.
+        Optimal K (lowest cross‑validation error rate).
     """
-    error_rates = []
+    k_range = np.arange(1, max_k + 1)
+    cv_errors = []
 
-    for k in range(1, k_max + 1):
-        knn  = KNeighborsClassifier(n_neighbors=k)
-        knn.fit(X_train, y_train)
-        preds      = knn.predict(X_test)
-        error_rate = np.mean(preds != y_test)   # fraction of wrong predictions
-        error_rates.append(error_rate)
+    skf = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
 
-    optimal_k = int(np.argmin(error_rates)) + 1  # +1 because range starts at 1
+    for k in k_range:
+        knn = KNeighborsClassifier(n_neighbors=k)
+        scores = cross_val_score(knn, X_train, y_train, cv=skf, scoring='accuracy')
+        error = 1 - scores.mean()
+        cv_errors.append(error)
 
-    # ── Plot ─────────────────────────────────────────────────────────────────
+    optimal_k = k_range[np.argmin(cv_errors)]
+
+    # Plot elbow curve
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(
-        range(1, k_max + 1), error_rates,
-        color="steelblue", linestyle="--", marker="o",
-        markerfacecolor="tomato", markersize=8, linewidth=2,
-        label="Error Rate",
-    )
-    ax.axvline(
-        x=optimal_k, color="green", linestyle=":", linewidth=2,
-        label=f"Optimal K = {optimal_k}  (error={error_rates[optimal_k-1]:.3f})",
-    )
+    ax.plot(k_range, cv_errors, color="steelblue", linestyle="--", marker="o",
+            markerfacecolor="tomato", markersize=8, linewidth=2, label="CV Error Rate")
+    ax.axvline(x=optimal_k, color="green", linestyle=":", linewidth=2,
+               label=f"Optimal K = {optimal_k}  (error={cv_errors[optimal_k-1]:.3f})")
     ax.set_xlabel("K (Number of Neighbours)", fontsize=12)
-    ax.set_ylabel("Error Rate", fontsize=12)
-    ax.set_title("Elbow Method — KNN Error Rate vs. K Value", fontsize=14, fontweight="bold")
+    ax.set_ylabel("Cross‑Validation Error Rate", fontsize=12)
+    ax.set_title("Elbow Method — 5‑fold CV Error vs. K", fontsize=14, fontweight="bold")
     ax.legend(fontsize=11)
-    ax.set_xticks(range(1, k_max + 1))
+    ax.set_xticks(range(1, max_k + 1, 2))
     fig.tight_layout()
 
     if save_fig:
-        fig.savefig("/mnt/user-data/outputs/elbow_plot.png", bbox_inches="tight")
-        print(f"\n  [Elbow Plot] saved → elbow_plot.png")
+        path = os.path.join(OUTPUT_DIR, "elbow_plot.png")
+        fig.savefig(path, bbox_inches="tight")
+        print(f"\n  [Elbow plot] saved → {path}")
 
     plt.show()
-
-    print(f"\n  Optimal K identified : {optimal_k}")
-    print(f"  Corresponding error  : {error_rates[optimal_k-1]:.4f}")
-
+    print(f"\n  Optimal K (via CV) : {optimal_k}")
+    print(f"  Lowest CV error    : {cv_errors[optimal_k-1]:.4f}")
     return optimal_k
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  3 · MODEL TRAINING                                                     ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
-
-def train_model(
-    X_train: np.ndarray,
-    y_train: np.ndarray,
-    k: int,
-) -> KNeighborsClassifier:
-    """Instantiate and train a KNN classifier with the given K.
-
-    Args:
-        X_train (np.ndarray): Scaled training features.
-        y_train (np.ndarray): Training labels.
-        k (int): Number of neighbours to use.
-
-    Returns:
-        KNeighborsClassifier: Fitted model ready for inference.
-    """
+# ----------------------------------------------------------------------
+# 3. Train final model
+# ----------------------------------------------------------------------
+def train_model(X_train: np.ndarray, y_train: np.ndarray, k: int) -> KNeighborsClassifier:
+    """Train KNN classifier with the chosen K."""
     model = KNeighborsClassifier(n_neighbors=k)
     model.fit(X_train, y_train)
-    print(f"\n  Model trained  : KNeighborsClassifier(n_neighbors={k})")
+    print(f"\n  Model trained : KNN(K={k})")
     return model
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  4 · VALIDATION & METRICS                                               ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
-
+# ----------------------------------------------------------------------
+# 4. Evaluation: confusion matrix, classification report, per‑class table
+# ----------------------------------------------------------------------
 def evaluate_model(
-    model:        KNeighborsClassifier,
-    X_test:       np.ndarray,
-    y_test:       np.ndarray,
+    model: KNeighborsClassifier,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
     target_names: list[str],
-    save_fig:     bool = True,
+    save_fig: bool = True,
 ) -> None:
-    """Generate and display all evaluation metrics for the trained model.
+    """
+    Generate all evaluation metrics. Explains why accuracy alone is insufficient.
 
-    Why accuracy alone is misleading
-    ---------------------------------
-    On a balanced dataset like Iris, accuracy can look great even when the
-    model fails systematically on one class.  The metrics below give a
-    complete, honest picture:
-
-    * Confusion Matrix  – counts of TP / FP / TN / FN per class.
-    * Precision         – of all predicted positives, how many were truly positive?
-                          (minimises false alarms)
-    * Recall            – of all actual positives, how many did the model catch?
-                          (minimises misses)
-    * F1 Score          – harmonic mean of Precision and Recall; balanced metric
-                          that penalises extremes and is robust to class imbalance.
-
-    Args:
-        model        (KNeighborsClassifier): Fitted KNN model.
-        X_test       (np.ndarray): Scaled testing features.
-        y_test       (np.ndarray): True labels.
-        target_names (list[str]): Human-readable class names.
-        save_fig     (bool): Save confusion matrix plot. Defaults to True.
+    Metrics:
+      - Confusion matrix (with annotations)
+      - Precision, Recall, F1 per class
+      - Per‑class F1 table for readability
     """
     y_pred = model.predict(X_test)
 
-    # ── 4a · Raw accuracy (shown for reference; don't rely on it alone) ──────
+    # Raw accuracy (for reference, but not the main metric)
     accuracy = np.mean(y_pred == y_test)
-    print(f"\n  Raw Accuracy    : {accuracy:.4f}  ({accuracy*100:.1f} %)")
-    print("  (Accuracy is a partial truth — see F1 scores below)\n")
+    print(f"\n  Raw accuracy      : {accuracy:.4f}  ({accuracy*100:.1f}%)")
+    print("  (Accuracy can be misleading – see precision/recall/F1 below)\n")
 
-    # ── 4b · Classification Report ───────────────────────────────────────────
+    # Classification report
     print("=" * 60)
     print("  CLASSIFICATION REPORT")
     print("=" * 60)
     print(classification_report(y_test, y_pred, target_names=target_names))
 
-    # ── 4c · Confusion Matrix visualisation ─────────────────────────────────
-    cm  = confusion_matrix(y_test, y_pred)
+    # Confusion matrix with heatmap
+    cm = confusion_matrix(y_test, y_pred)
     fig, ax = plt.subplots(figsize=(7, 6))
-
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=target_names)
     disp.plot(ax=ax, colorbar=False, cmap="Blues")
-
-    # Annotate TP / FP / TN / FN interpretation in title
-    ax.set_title(
-        "Confusion Matrix\n"
-        "(Diagonal = True Positives  |  Off-diagonal = Misclassifications)",
-        fontsize=11, fontweight="bold",
-    )
-    ax.set_xlabel("Predicted Label", fontsize=11)
-    ax.set_ylabel("True Label",      fontsize=11)
+    ax.set_title("Confusion Matrix\n(Diagonal = correct predictions)", fontsize=11, fontweight="bold")
     fig.tight_layout()
 
     if save_fig:
-        fig.savefig("/mnt/user-data/outputs/confusion_matrix.png", bbox_inches="tight")
-        print("  [Confusion Matrix] saved → confusion_matrix.png")
+        path = os.path.join(OUTPUT_DIR, "confusion_matrix.png")
+        fig.savefig(path, bbox_inches="tight")
+        print("  [Confusion matrix] saved → confusion_matrix.png")
 
     plt.show()
 
-    # ── 4d · Per-class F1 summary table (pandas for readability) ────────────
-    report_dict = classification_report(
-        y_test, y_pred,
-        target_names=target_names,
-        output_dict=True,
-    )
+    # Per‑class F1 table (pandas for nice display)
+    report_dict = classification_report(y_test, y_pred, target_names=target_names, output_dict=True)
     rows = {
         cls: {
             "Precision": report_dict[cls]["precision"],
-            "Recall"   : report_dict[cls]["recall"],
-            "F1-Score" : report_dict[cls]["f1-score"],
-            "Support"  : int(report_dict[cls]["support"]),
+            "Recall": report_dict[cls]["recall"],
+            "F1-Score": report_dict[cls]["f1-score"],
+            "Support": int(report_dict[cls]["support"]),
         }
         for cls in target_names
     }
     df_metrics = pd.DataFrame(rows).T.round(4)
-    print("\n  Per-class F1 Table:")
+    print("\n  Per‑class metrics table:")
     print(df_metrics.to_string())
     print()
 
 
-# ╔══════════════════════════════════════════════════════════════════════════╗
-# ║  MAIN ORCHESTRATOR                                                      ║
-# ╚══════════════════════════════════════════════════════════════════════════╝
-
+# ----------------------------------------------------------------------
+# 5. Main orchestrator
+# ----------------------------------------------------------------------
 def run_pipeline(
-    test_size:    float = 0.20,
-    random_state: int   = 42,
-    k_max:        int   = 30,
+    test_size: float = 0.20,
+    random_state: int = 42,
+    max_k: int = 30,
+    cv_folds: int = 5,
 ) -> None:
-    """End-to-end orchestrator for the DecodeLabs KNN Classification pipeline.
-
-    Calls each stage in IPO order:
-        Input  → load_and_prepare()
-        Process→ find_optimal_k()  →  train_model()
-        Output → evaluate_model()
+    """
+    Execute the complete KNN classification pipeline.
 
     Args:
-        test_size    (float): Fraction held out for testing. Default 0.20.
-        random_state (int):   Global seed for reproducibility. Default 42.
-        k_max        (int):   Max K value tested in Elbow Method. Default 30.
+        test_size: Fraction for testing (default 0.2).
+        random_state: Global seed for reproducibility.
+        max_k: Maximum K to evaluate in elbow method.
+        cv_folds: Number of cross‑validation folds.
     """
     print("\n" + "▓" * 60)
-    print("  DecodeLabs · Project 2 · KNN Classification Pipeline")
+    print("  DecodeLabs · Project 2 · Correct KNN Pipeline")
     print("▓" * 60)
 
-    # ── Stage 1 · Input ───────────────────────────────────────────────────
+    # Step 1: Load, shuffle, split, scale
     X_train, X_test, y_train, y_test, scaler, target_names = load_and_prepare(
-        test_size=test_size,
+        test_size=test_size, random_state=random_state
+    )
+
+    # Step 2: Find optimal K using cross‑validation (NO TEST SET LEAKAGE)
+    optimal_k = find_optimal_k_cv(
+        X_train, y_train,
+        max_k=max_k,
+        cv_folds=cv_folds,
         random_state=random_state,
     )
 
-    # ── Stage 2a · Elbow Method ───────────────────────────────────────────
-    optimal_k = find_optimal_k(
-        X_train, y_train,
-        X_test,  y_test,
-        k_max=k_max,
-    )
-
-    # ── Stage 2b · Train with optimal K ──────────────────────────────────
+    # Step 3: Train final model with optimal K
     model = train_model(X_train, y_train, k=optimal_k)
 
-    # ── Stage 3 · Evaluate ────────────────────────────────────────────────
+    # Step 4: Evaluate on untouched test set
     evaluate_model(model, X_test, y_test, target_names)
 
     print("▓" * 60)
-    print("  Pipeline complete.")
+    print("  Pipeline complete. All plots saved in './outputs/'")
     print("▓" * 60 + "\n")
 
 
-# ── Entry point ───────────────────────────────────────────────────────────────
+# ----------------------------------------------------------------------
 if __name__ == "__main__":
     run_pipeline(
-        test_size    = 0.20,   # ← configurable
-        random_state = 42,     # ← configurable
-        k_max        = 30,     # ← configurable
+        test_size=0.20,      # configurable
+        random_state=42,     # configurable
+        max_k=30,            # configurable
+        cv_folds=5,          # configurable
     )
