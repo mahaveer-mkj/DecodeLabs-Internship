@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🤖 WavYy — Rule-Based AI Chatbot
-### DecodeLabs Training Kit — Project 1: Foundations of Intelligent Systems
+### DecodeLabs — Project 1: Foundations of Intelligent Systems
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Rule-Based](https://img.shields.io/badge/AI-Rule--Based-805AD5?style=for-the-badge)
@@ -27,7 +27,7 @@ WavYy is a deterministic chatbot that responds to user input using **predefined 
 | **Process** | Sanitize input → lookup in knowledge base dictionary | `.strip().lower()` ensures case‑insensitive, whitespace‑tolerant matching |
 | **Output** | Return the matched response or a fallback string | Graceful handling of unknown queries — no crashes, no silence |
 
-> **Design Philosophy:** Every line of code is explicit. The chatbot never guesses — it follows strict, human‑defined logic. This project lays the mental model for how machines process language before they ever “learn.”
+> **Design Philosophy:** Every line of code is explicit. The chatbot never guesses — it follows strict, human‑defined logic. This project lays the mental model for how machines process language before they ever "learn."
 
 ---
 
@@ -58,8 +58,8 @@ WavYy : Goodbye! Have a great day.
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/mahaveer-mkj/decodelabs-rulebased-chatbot.git
-cd decodelabs-rulebased-chatbot
+git clone https://github.com/mahaveer-mkj/DecodeLabs-Internship.git
+cd DecodeLabs-Internship/Project-1-Chatbot
 ```
 
 ### 2. No external dependencies required
@@ -77,7 +77,7 @@ The script will start an interactive session. Type your messages and press Enter
 ## 📁 Project Structure
 
 ```
-decodelabs-rulebased-chatbot/
+Project-1-Chatbot/
 │
 ├── chatbot.py        # Main chatbot script (single file)
 └── README.md         # This file
@@ -107,7 +107,7 @@ The entire logic — input loop, sanitization, knowledge base, and response engi
 1. **Infinite loop** keeps the conversation alive until an exit condition is met.
 2. **Input sanitization** strips accidental whitespace and normalises case — critical for dictionary lookups where `"Hello"` ≠ `"hello"`.
 3. **Hash map (dictionary)** stores question‑response pairs for O(1) average lookup — the same data structure powering many production chatbots.
-4. **Fallback mechanism** ensures the bot always replies, even when it doesn’t understand the query.
+4. **Fallback mechanism** ensures the bot always replies, even when it doesn't understand the query.
 
 ---
 
@@ -137,13 +137,13 @@ Before teaching a machine to learn from data, we must first teach it to follow e
 - **Controlled** — no risk of generating inappropriate or incorrect information.
 
 ### Why `.strip().lower()`?
-Users may type `"   Hello   "` or `"HELLO"`. Without normalisation, the string would fail a dictionary lookup for `"hello"`. This tiny preprocessing step dramatically improves the bot’s perceived intelligence.
+Users may type `"   Hello   "` or `"HELLO"`. Without normalisation, the string would fail a dictionary lookup for `"hello"`. This tiny preprocessing step dramatically improves the bot's perceived intelligence.
 
 ### Why a hash map (dictionary)?
 Python dictionaries provide constant‑time average lookup. A list of `if-elif` chains would grow slower as the knowledge base expands; the dictionary scales efficiently.
 
 ### Why a fallback response?
-Real users ask anything. An AI that goes silent when confused breaks the conversational illusion. A consistent fallback like *"I’m still learning. Please ask me something else!"* keeps the interaction alive while clearly signalling the system’s limits.
+Real users ask anything. An AI that goes silent when confused breaks the conversational illusion. A consistent fallback like *"I'm still learning. Please ask me something else!"* keeps the interaction alive while clearly signalling the system's limits.
 
 ---
 
@@ -159,7 +159,7 @@ Real users ask anything. An AI that goes silent when confused breaks the convers
 
 ## 📚 Project Context
 
-This project is the first step in the **DecodeLabs Training Kit**, developed during my AI internship at [DecodeLabs](https://www.decodelabs.tech/). Project 1 establishes the critical mental model: **intelligent systems start with logic, not statistics.** It bridges the gap between beginner programming and the supervised learning pipeline built in Project 2.
+This project was assigned and completed during my AI internship at [DecodeLabs](https://www.decodelabs.tech/). Project 1 establishes the critical mental model: **intelligent systems start with logic, not statistics.** It bridges the gap between beginner programming and the supervised learning pipeline built in Project 2.
 
 ---
 
