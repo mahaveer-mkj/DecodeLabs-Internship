@@ -90,7 +90,7 @@ python iris_knn_pipeline.py
 
 | Elbow Method | Confusion Matrix |
 |---|---|
-| ![Elbow Plot](./Project-2-KNN-Classification/elbow_plot.png) | ![Confusion Matrix](./Project-2-KNN-Classification/confusion_matrix.png) |
+| ![Elbow Plot](./Project-2-KNN-Classification/outputs/elbow_plot.png) | ![Confusion Matrix](./Project-2-KNN-Classification/outputs/confusion_matrix.png) |
 
 ---
 
