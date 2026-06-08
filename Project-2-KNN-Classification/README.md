@@ -86,8 +86,8 @@ virginica       1.0     1.0       1.0       10
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/mahaveer-mkj/decodelabs-knn-classification.git
-cd decodelabs-knn-classification
+git clone https://github.com/mahaveer-mkj/DecodeLabs-Internship.git
+cd DecodeLabs-Internship/Project-2-KNN-Classification
 ```
 
 ### 2. Install dependencies
