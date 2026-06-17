@@ -1,0 +1,23 @@
+INFO: Loaded 18 items from raw_skills.csv
+INFO: TF-IDF vocabulary fitted: 76 terms across 18 items.
+
+=== Standard Match (weighted) ===
+#1  Machine Learning Engineer Role  [JobRole]  -> similarity = 0.406
+#2  Cloud DevOps Engineer Role  [JobRole]  -> similarity = 0.4039
+#3  MLOps Engineer Role  [JobRole]  -> similarity = 0.3785
+WARNING: Cold Start triggered: only 1 valid skill(s) supplied (minimum required = 3). Falling back to onboarding survey.
+INFO: Onboarding survey populated profile with: ['python', 'automation', 'cloud', 'computing', 'learning']
+INFO: Note: these results were generated from an onboarding-survey profile, not raw user input.
+
+=== Cold Start (insufficient input) ===
+#1  Machine Learning Engineer Role  [JobRole]  -> similarity = 0.4962
+#2  MLOps Engineer Role  [JobRole]  -> similarity = 0.4626
+#3  Google Cloud Professional  [Platform]  -> similarity = 0.3849
+WARNING: Zero-vector detected post-vectorization (skills ['quantum macrame', 'astral welding', 'vibe coding'] have no overlap with the known vocabulary). Forcing onboarding survey.
+INFO: Onboarding survey populated profile with: ['quantum macrame', 'astral welding', 'vibe coding', 'automation', 'python', 'cloud', 'computing', 'learning']
+INFO: Note: these results were generated from an onboarding-survey profile, not raw user input.
+
+=== Cold Start (out-of-vocabulary input) ===
+#1  Machine Learning Engineer Role  [JobRole]  -> similarity = 0.4962
+#2  MLOps Engineer Role  [JobRole]  -> similarity = 0.4626
+#3  Google Cloud Professional  [Platform]  -> similarity = 0.3849
