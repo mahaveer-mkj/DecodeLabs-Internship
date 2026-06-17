@@ -33,7 +33,7 @@ The internship follows a deliberate learning arc — starting from the absolute 
 |---|---------|---------|--------|--------|
 | 1 | [🤖 WavYy — Rule-Based AI Chatbot](#project-1--wayyy--rule-based-ai-chatbot) | Control Flow, Hash Maps, Decision Logic | ✅ Complete | [`Project-1-Chatbot`](./Project-1-Chatbot/) |
 | 2 | [🌸 Iris KNN Classification Pipeline](#project-2--iris-knn-classification-pipeline) | Supervised Learning, KNN, F1 Score | ✅ Complete | [`Project-2-KNN-Classification`](./Project-2-KNN-Classification/) |
-| 3 | 🎯 [Tech Stack Recommender — "The Digital Matchmaker"](#project-3--tech-stack-recommender--the-digital-matchmaker) | Content-Based Filtering, TF-IDF, Cosine Similarity | ✅ Complete | [`Project-3-Recommendation-Engine`](https://github.com/mahaveer-mkj/DecodeLabs-Internship/blob/main/Project-3-Recommendation-Engine) |
+| 3 | [🎯 Tech Stack Recommender — "The Digital Matchmaker"](#project-3--tech-stack-recommender--the-digital-matchmaker) | Content-Based Filtering, TF-IDF, Cosine Similarity | ✅ Complete | [`Project-3-Recommendation-Engine`](./Project-3-Recommendation-Engine/) |
 | 4 | 🔒 Coming Soon | — | ⏳ Upcoming | — |
 
 ---
@@ -92,10 +92,10 @@ python iris_knn_pipeline.py
 |---|---|
 | ![Elbow Plot](./Project-2-KNN-Classification/outputs/elbow_plot.png) | ![Confusion Matrix](./Project-2-KNN-Classification/outputs/confusion_matrix.png) |
 
----  
+---
 
 ### Project 3 · Tech Stack Recommender — "The Digital Matchmaker"
-> **Folder:** [`Project-3-Recommendation-Engine/`](https://github.com/mahaveer-mkj/DecodeLabs-Internship/blob/main/Project-3-Recommendation-Engine)
+> **Folder:** [`Project-3-Recommendation-Engine/`](./Project-3-Recommendation-Engine/)
 
 A content-based recommendation engine that maps user skills/interests to platforms, tools, and job roles using TF-IDF vectorization and Cosine Similarity — strictly avoiding Euclidean distance and binary overlap. Includes dual cold-start handling (structural and semantic) so a user is never left with a zero vector, plus a bonus 1-5 preference-weighting layer.
 
@@ -105,6 +105,22 @@ A content-based recommendation engine that maps user skills/interests to platfor
 - Cosine Similarity — angle, not distance — and why that matters at scale
 - Strict vocabulary alignment between user and item feature spaces
 
+```bash
+cd Project-3-Recommendation-Engine
+pip install -r requirements.txt
+python main.py
+```
+
+**Sample output:**
+
+```
+#1  Machine Learning Engineer Role  [JobRole]  -> similarity = 0.406
+#2  Cloud DevOps Engineer Role     [JobRole]  -> similarity = 0.4039
+#3  MLOps Engineer Role            [JobRole]  -> similarity = 0.3785
+```
+
+Full run, including both cold-start recovery paths: [`outputs/sample_run_output.txt`](./Project-3-Recommendation-Engine/outputs/sample_run_output.txt)
+
 ---
 
 ## 🛠️ Tech Stack
@@ -112,13 +128,13 @@ A content-based recommendation engine that maps user skills/interests to platfor
 | Tool / Library | Used In | Purpose |
 |----------------|---------|---------|
 | `Python 3.9+` | All projects | Core language |
-| `scikit-learn` | Project 2 | KNN model, scaler, metrics |
+| `scikit-learn` | Projects 2, 3 | KNN model / TF-IDF vectorizer, scaler, metrics, cosine similarity |
 | `numpy` | Project 2 | Numerical computation |
-| `pandas` | Project 2 | Data handling |
+| `pandas` | Projects 2, 3 | Data handling, ranking and sorting |
 | `matplotlib` | Project 2 | Elbow plot, confusion matrix |
 | `seaborn` | Project 2 | Plot styling |
+| `scipy` | Project 3 | Sparse vector math (cosine similarity) |
 | `Git + GitHub` | All projects | Version control and portfolio |
-| scipy | Project 3 | Sparse vector math (cosine similarity) |
 
 ---
 
@@ -127,15 +143,16 @@ A content-based recommendation engine that maps user skills/interests to platfor
 ```
 Project 1                Project 2                Project 3                Project 4
 ────────────             ────────────             ────────────             ────────────
-Rule-Based AI      →     Supervised ML      →     TBA                →     TBA
-                         
-No learning              Learns from data
-Explicit rules           Finds patterns
-Deterministic            Probabilistic
-O(1) lookup              Distance-based
+Rule-Based AI      →     Supervised ML      →     Content-Based      →     TBA
+                                                    Filtering
+
+No learning              Learns from data         Matches by feature
+Explicit rules           Finds patterns           similarity, not labels
+Deterministic            Probabilistic            Vector-space geometry
+O(1) lookup              Distance-based           Angle-based (cosine)
 ```
 
-> Each project builds directly on the mental models established by the previous one. You cannot fully appreciate *why* feature scaling matters in KNN without first understanding deterministic logic in Project 1.
+> Each project builds directly on the mental models established by the previous one. You cannot fully appreciate *why* feature scaling matters in KNN without first understanding deterministic logic in Project 1 — and you cannot appreciate why cosine similarity beats Euclidean distance without first seeing how KNN actually uses Euclidean distance in Project 2.
 
 ---
 
