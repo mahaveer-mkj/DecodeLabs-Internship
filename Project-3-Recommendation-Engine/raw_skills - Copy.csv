@@ -1,0 +1,19 @@
+item_id,item_name,category,description
+1,AWS Cloud Practitioner Track,Platform,cloud computing aws ec2 s3 lambda serverless automation infrastructure devops scalability
+2,Microsoft Azure Fundamentals,Platform,cloud computing azure virtual machines automation devops infrastructure scalability hybrid cloud
+3,Google Cloud Professional,Platform,cloud computing gcp bigquery kubernetes automation data engineering scalability machine learning
+4,Docker and Containerization,Tool,docker containers automation devops deployment microservices orchestration infrastructure
+5,Kubernetes Orchestration,Tool,kubernetes orchestration containers automation devops scalability cloud computing infrastructure
+6,TensorFlow Deep Learning,Tool,python tensorflow deep learning machine learning neural networks data science automation
+7,PyTorch Research Stack,Tool,python pytorch deep learning research machine learning neural networks data science
+8,scikit-learn ML Toolkit,Tool,python scikit learn machine learning data science statistics automation modeling
+9,React Frontend Engineering,Tool,javascript react frontend ui ux web development typescript automation
+10,Node.js Backend Stack,Tool,javascript node js backend api automation web development server side
+11,UiPath RPA Suite,Tool,automation rpa robotic process automation workflow business process python integration
+12,Cloud DevOps Engineer Role,JobRole,cloud computing aws azure automation devops ci cd infrastructure scalability python
+13,Machine Learning Engineer Role,JobRole,python machine learning data science automation cloud computing model deployment mlops
+14,Data Engineer Role,JobRole,python sql data engineering pipelines automation cloud computing big data etl
+15,Automation Test Engineer Role,JobRole,automation python testing qa selenium ci cd scripting workflow
+16,Full Stack Developer Role,JobRole,javascript react node js python web development automation full stack
+17,Cybersecurity Analyst Role,JobRole,security automation python networking cloud computing risk assessment compliance
+18,MLOps Engineer Role,JobRole,python machine learning automation cloud computing kubernetes docker mlops ci cd deployment
