@@ -118,6 +118,7 @@ A content-based recommendation engine that maps user skills/interests to platfor
 | `matplotlib` | Project 2 | Elbow plot, confusion matrix |
 | `seaborn` | Project 2 | Plot styling |
 | `Git + GitHub` | All projects | Version control and portfolio |
+| scipy | Project 3 | Sparse vector math (cosine similarity) |
 
 ---
 
