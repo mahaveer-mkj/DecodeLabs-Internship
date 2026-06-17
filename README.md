@@ -33,7 +33,7 @@ The internship follows a deliberate learning arc — starting from the absolute 
 |---|---------|---------|--------|--------|
 | 1 | [🤖 WavYy — Rule-Based AI Chatbot](#project-1--wayyy--rule-based-ai-chatbot) | Control Flow, Hash Maps, Decision Logic | ✅ Complete | [`Project-1-Chatbot`](./Project-1-Chatbot/) |
 | 2 | [🌸 Iris KNN Classification Pipeline](#project-2--iris-knn-classification-pipeline) | Supervised Learning, KNN, F1 Score | ✅ Complete | [`Project-2-KNN-Classification`](./Project-2-KNN-Classification/) |
-| 3 | 🔒 Coming Soon | — | 🔄 In Progress | — |
+| 3 | 🎯 [Tech Stack Recommender — "The Digital Matchmaker"](#project-3--tech-stack-recommender--the-digital-matchmaker) | Content-Based Filtering, TF-IDF, Cosine Similarity | ✅ Complete | [`Project-3-Recommendation-Engine`](https://github.com/mahaveer-mkj/DecodeLabs-Internship/blob/main/Project-3-Recommendation-Engine) |
 | 4 | 🔒 Coming Soon | — | ⏳ Upcoming | — |
 
 ---
@@ -43,7 +43,7 @@ The internship follows a deliberate learning arc — starting from the absolute 
 ```
 Week 1  ██████████  Project 1 — Rule-Based Chatbot         ✅ Complete
 Week 2  ██████████  Project 2 — KNN Classification         ✅ Complete
-Week 3  ░░░░░░░░░░  Project 3 — TBA                        🔄 In Progress
+Week 3  ██████████  Project 3 — Recommendation Engine      ✅ Complete
 Week 4  ░░░░░░░░░░  Project 4 — TBA                        ⏳ Upcoming
 ```
 
@@ -91,6 +91,19 @@ python iris_knn_pipeline.py
 | Elbow Method | Confusion Matrix |
 |---|---|
 | ![Elbow Plot](./Project-2-KNN-Classification/outputs/elbow_plot.png) | ![Confusion Matrix](./Project-2-KNN-Classification/outputs/confusion_matrix.png) |
+
+---  
+
+### Project 3 · Tech Stack Recommender — "The Digital Matchmaker"
+> **Folder:** [`Project-3-Recommendation-Engine/`](https://github.com/mahaveer-mkj/DecodeLabs-Internship/blob/main/Project-3-Recommendation-Engine)
+
+A content-based recommendation engine that maps user skills/interests to platforms, tools, and job roles using TF-IDF vectorization and Cosine Similarity — strictly avoiding Euclidean distance and binary overlap. Includes dual cold-start handling (structural and semantic) so a user is never left with a zero vector, plus a bonus 1-5 preference-weighting layer.
+
+**Key concepts covered:**
+- Content-Based Filtering vs. Collaborative Filtering
+- TF-IDF: penalizing generic terms, rewarding specific ones
+- Cosine Similarity — angle, not distance — and why that matters at scale
+- Strict vocabulary alignment between user and item feature spaces
 
 ---
 
