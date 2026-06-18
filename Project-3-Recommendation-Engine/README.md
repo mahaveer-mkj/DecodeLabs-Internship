@@ -8,13 +8,14 @@
 ![Pandas](https://img.shields.io/badge/Pandas-2.0%2B-150458?style=for-the-badge&logo=pandas&logoColor=white)
 ![SciPy](https://img.shields.io/badge/SciPy-1.10%2B-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.38%2B-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-thedigitalmatchmaker.streamlit.app-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://thedigitalmatchmaker.streamlit.app/)
 ![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Complete-22C55E?style=for-the-badge)
 
 **A production-grade, fully documented Content-Based Recommendation Engine —  
 moving beyond classification to mathematical pattern-matching across user and item feature spaces.**
 
-[View Code](#-project-structure) · [How to Run](#-quick-start) · [Results](#-results--outputs) · [Key Concepts](#-key-concepts-explained)
+[Live Demo](https://thedigitalmatchmaker.streamlit.app/) · [View Code](#-project-structure) · [How to Run](#-quick-start) · [Results](#-results--outputs) · [Key Concepts](#-key-concepts-explained)
 
 ---
 
@@ -91,7 +92,11 @@ The script will:
 - Run both cold‑start scenarios (structural + semantic) and print the recovery logs and Top‑3 results
 - The full text capture is also saved at `outputs/sample_run_output.txt`
 
-### 3b. Or launch the interactive UI (optional, same logic underneath)
+### 3b. Or use the interactive UI (optional, same logic underneath)
+
+Don't want to install anything? **[Try the live version →](https://thedigitalmatchmaker.streamlit.app/)** (`thedigitalmatchmaker.streamlit.app`)
+
+To run it yourself instead:
 ```bash
 streamlit run app.py
 ```
