@@ -1,4 +1,3 @@
-
 <div align="center">
 
 # 🎯 Tech Stack Recommender — "The Digital Matchmaker"
@@ -7,15 +6,15 @@
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)
 ![Pandas](https://img.shields.io/badge/Pandas-2.0%2B-150458?style=for-the-badge&logo=pandas&logoColor=white)
-![NumPy](https://img.shields.io/badge/NumPy-1.24%2B-013243?style=for-the-badge&logo=numpy&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-1.10%2B-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.38%2B-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Complete-22C55E?style=for-the-badge)
 
-**A production-grade Content-Based Filtering engine —  
-mathematically mapping skills to careers using TF‑IDF vectorization and Cosine Similarity.  
-No rules, no randomness — every recommendation is the output of strict vector-space math.**
+**A production-grade, fully documented Content-Based Recommendation Engine —  
+moving beyond classification to mathematical pattern-matching across user and item feature spaces.**
 
-[View Code](#-project-structure) · [How to Run](#-quick-start) · [Sample Output](#-results--outputs) · [Key Concepts](#-key-concepts-explained)
+[View Code](#-project-structure) · [How to Run](#-quick-start) · [Results](#-results--outputs) · [Key Concepts](#-key-concepts-explained)
 
 ---
 
@@ -23,53 +22,48 @@ No rules, no randomness — every recommendation is the output of strict vector-
 
 ## 📌 What This Project Does
 
-This pipeline recommends the **Top‑3 most aligned tech platforms, tools, and job roles** based on a user's self‑reported skills and career interests. It implements a strict **Content‑Based Filtering** approach — matching a user profile directly against item attributes using **TF‑IDF weighting** and **Cosine Similarity**, following a rigorous **Input → Process → Output (IPO)** architecture.
+This pipeline maps a user's skills and career interests to the most aligned tech **platforms, tools, and job roles** using **Content-Based Filtering** — one of the two foundational recommender paradigms. It is built to the same professional, scalable standard as Project 2, following a strict **Input → Process → Output (IPO)** architecture.
 
 | Stage | Task | Key Decision |
 |-------|------|-------------|
-| **Input** | Ingest user skills (min. 3), apply cold‑start guard, run weighted preference survey | Never allow a zero vector — structural *and* semantic guards |
-| **Process** | Fit shared TF‑IDF vocabulary on the item catalogue, project user into the *same* vector space, score via Cosine Similarity | Vocabulary alignment enforced — user and items share one fitted vectorizer |
-| **Output** | Sort descending by similarity score, truncate to Top‑3 | Prevents choice overload — the full ranked list is never shown |
+| **Input** | Capture user skills (min. 3) and optional 1–5 preference weights; validate against the Cold‑Start rules | Dual cold‑start guard — structural (too few skills) **and** semantic (zero‑vector / out‑of‑vocabulary) — a user is never allowed to proceed empty‑handed |
+| **Process** | Fit one shared TF‑IDF vocabulary across all items, project the user profile into that *same* space, score every item via Cosine Similarity | Cosine, not Euclidean — angle‑based and scale‑invariant, so it doesn't punish a richly‑described profile |
+| **Output** | Sort all similarity scores descending, truncate to Top‑3 | Top‑N truncation only — the full ranked list is never exposed, by design |
 
-> **Design Philosophy:** This is not a keyword matcher. Generic terms like *"automation"* are penalized by TF‑IDF's inverse document frequency. Rare, discriminative terms like *"Kubernetes"* or *"PyTorch"* are rewarded. The result is a precision‑oriented recommendation, not a fuzzy guess.
+> **Design Philosophy:** Every step is justified, not just functional. Inline comments explain *why* each decision is made — this is an educational‑grade professional tool.
 
 ---
 
 ## 📊 Results & Outputs
 
-The pipeline prints results directly to the console and logs cold‑start trigger events. A captured run is saved at [`outputs/sample_run_output.txt`](./outputs/sample_run_output.txt).
+The full console capture from an actual run is saved at `outputs/sample_run_output.txt`.
 
-### Standard Match (Weighted Skills)
-> User provides 3+ skills with optional 1‑5 importance ratings. TF‑IDF amplifies higher‑rated skills by repeating them in the synthetic user document — an honest manipulation of term frequency, not a post‑hoc score multiplier.
+### Standard Match — Weighted Skill Query
+> Querying `["Python", "Cloud Computing", "Automation"]` with preference weights `{Python: 5, Cloud Computing: 4, Automation: 3}` returns three job‑role matches, ranked purely by cosine similarity — no manual curation involved.
 
 ```
-=== Standard Match (weighted) ===
 #1  Machine Learning Engineer Role  [JobRole]  -> similarity = 0.406
-#2  Cloud DevOps Engineer Role  [JobRole]  -> similarity = 0.4039
-#3  MLOps Engineer Role  [JobRole]  -> similarity = 0.3785
+#2  Cloud DevOps Engineer Role     [JobRole]  -> similarity = 0.4039
+#3  MLOps Engineer Role            [JobRole]  -> similarity = 0.3785
 ```
 
 ---
 
-### Cold‑Start Trigger: Insufficient Input
-> Fewer than 3 skills supplied. The system **refuses** to proceed — this is the structural cold‑start guard. The user is looped until minimum input is met.
+### Cold‑Start Recovery — Zero‑Vector Guard in Action
+> Querying three deliberately nonsense skills (`"Quantum Macrame"`, `"Astral Welding"`, `"Vibe Coding"`) produces a 100% out‑of‑vocabulary vector. Instead of returning empty or random results, the semantic cold‑start guard detects `nnz == 0` and silently repopulates the profile from the dataset's own trending terms before re‑scoring.
 
 ```
-[LOG] Cold-start guard triggered: only 2 skills provided (minimum 3 required).
-[LOG] Re-prompting user for additional skills...
+WARNING: Zero-vector detected post-vectorization (skills have no overlap with the known vocabulary).
+         Forcing onboarding survey.
+INFO:    Onboarding survey populated profile with:
+         ['quantum macrame', 'astral welding', 'vibe coding', 'automation', 'python', 'cloud', 'computing', 'learning']
+
+#1  Machine Learning Engineer Role  [JobRole]   -> similarity = 0.4962
+#2  MLOps Engineer Role            [JobRole]   -> similarity = 0.4626
+#3  Google Cloud Professional      [Platform]  -> similarity = 0.3849
 ```
 
----
-
-### Cold‑Start Trigger: Semantic Zero‑Vector
-> 3+ skills provided, but **none** overlap with the fitted TF‑IDF vocabulary. The resulting sparse vector has `nnz == 0` — the semantic guard catches it before scoring can produce meaningless zeros.
-
-```
-[LOG] Cold-start guard triggered: user vector has zero non-zero entries.
-[LOG] All provided skills are out-of-vocabulary. Prompting for new input.
-```
-
-> ⚠️ **Important Note:** Cosine Similarity scores are bounded [0, 1] because TF‑IDF vectors are non‑negative. A score of 1.0 indicates perfect pattern alignment; 0.0 indicates orthogonal (no overlap). Real‑world scores typically range from 0.2 to 0.6 — perfect 1.0 is theoretically possible but rare outside toy datasets.
+> ⚠️ **Important Note:** Similarity scores reflect vocabulary overlap with the *sample* dataset shipped in this repo — they are a measure of relative ranking, not an absolute "compatibility %". Swapping `raw_skills.csv` for a larger, denser real‑world dataset will produce more nuanced scores without changing a single line of code.
 
 ---
 
@@ -86,17 +80,23 @@ cd DecodeLabs-Internship/Project-3-Recommendation-Engine
 pip install -r requirements.txt
 ```
 
-### 3. Run the pipeline
+### 3a. Run the CLI pipeline (the graded deliverable)
 ```bash
 python main.py
 ```
 
 The script will:
-- Load and validate `raw_skills.csv` (falls back to a built‑in sample dataset if missing)
-- Launch the interactive onboarding survey (skills + optional 1‑5 importance ratings)
-- Log every pipeline stage to the console
-- Print the **Top‑3 ranked matches** with similarity scores
-- Trigger and report both cold‑start guard types when applicable
+- Print a dataset summary to the console (items loaded, TF‑IDF vocabulary size)
+- Run a standard weighted match and print the Top‑3 results
+- Run both cold‑start scenarios (structural + semantic) and print the recovery logs and Top‑3 results
+- The full text capture is also saved at `outputs/sample_run_output.txt`
+
+### 3b. Or launch the interactive UI (optional, same logic underneath)
+```bash
+streamlit run app.py
+```
+
+`app.py` is a presentation layer only — it imports `TechStackRecommender` directly and calls the exact same `.recommend()` used by `main.py`. No recommendation logic is duplicated or reimplemented for the UI. It adds: a skill picker seeded with real in‑vocabulary suggestions, live 1–5 preference sliders (the bonus weighting feature, made tangible), and a visible "❄️ Cold‑start guard activated" banner whenever that safety net actually fires — so the same mechanism described below isn't just tested in a log line, it's something you can trigger and watch happen.
 
 ---
 
@@ -105,19 +105,20 @@ The script will:
 ```
 Project-3-Recommendation-Engine/
 │
-├── main.py                       # Entry point — orchestrates the full IPO pipeline
-├── requirements.txt              # Python dependencies
-├── raw_skills.csv                # Item catalogue (Platforms, Tools, Job Roles)
-│
-├── src/
-│   ├── __init__.py               # Package marker
-│   ├── data_ingestion.py         # Stage 1 — loads CSV, validates 3-skill minimum, runs cold‑start survey
-│   ├── feature_extractor.py      # Stage 2a — fits shared TF‑IDF vector space, projects user into it
-│   ├── recommendation_engine.py  # Stage 2b/3/4 — cosine scoring, descending sort, Top‑N truncation
-│   └── pipeline.py               # TechStackRecommender — orchestrator enforcing strict IPO call order
-│
-└── outputs/
-    └── sample_run_output.txt     # Captured console output from an actual run
+├── main.py                      # CLI entry point — demo harness, all 3 scenarios
+├── app.py                       # Optional Streamlit UI — same pipeline, presentation only
+├── .streamlit/
+│   └── config.toml              # Theme (reuses this repo's indigo brand color)
+├── pipeline.py                  # TechStackRecommender — orchestrates the strict IPO call
+├── data_ingestion.py            # Stage 1 — Input: load dataset, validate, cold-start survey
+├── feature_extractor.py         # Stage 2a — Process: shared TF-IDF vector space
+├── recommendation_engine.py     # Stage 2b/3/4 — Process/Output: cosine scoring, sort, Top-N
+├── models.py                    # UserProfile / MatchResult data contracts
+├── requirements.txt             # Python dependencies (incl. streamlit, optional)
+├── raw_skills.csv                # Item dataset (Platforms / Tools / Job Roles)
+├── outputs/                      # Captured run output
+│   └── sample_run_output.txt
+└── README.md                     # This file
 ```
 
 ---
@@ -126,144 +127,94 @@ Project-3-Recommendation-Engine/
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    INPUT STAGE                              │
-│                                                             │
-│  User skills (min. 3)  →  Cold‑start guard #1 (structural) │
-│       ↓                                                    │
-│  Weighted preference survey (1–5 per skill)                 │
-│       ↓                                                    │
-│  Build synthetic user document (skill × weight repetitions) │
-└─────────────────────┬───────────────────────────────────────┘
+│                    INPUT STAGE                               │
+│                                                                │
+│  capture_user_profile()  →  validate (>= 3 valid skills?)    │
+│                                      ↓                        │
+│                    [FAIL] → cold_start_survey()               │
+│                    [PASS] → UserProfile(skills, weights)      │
+└─────────────────────┬──────────────────────────────────────────┘
                       │
-┌─────────────────────▼───────────────────────────────────────┐
-│                   PROCESS STAGE                             │
-│                                                             │
-│  TF‑IDF vectorizer (pre‑fitted on item catalogue)           │
-│       ↓                                                    │
-│  Transform user document → user_vector (same vocabulary)    │
-│       ↓                                                    │
-│  Cold‑start guard #2 (semantic) — check nnz > 0             │
-│       ↓                                                    │
-│  Cosine Similarity(user_vector, item_matrix) → score[i]     │
-│       ↓                                                    │
-│  Sort descending → ranked_items                             │
-│       ↓                                                    │
-│  Truncate to Top‑N (default N=3)                            │
-└─────────────────────┬───────────────────────────────────────┘
+┌─────────────────────▼──────────────────────────────────────────┐
+│                   PROCESS STAGE                                │
+│                                                                  │
+│  FeatureExtractor.fit(items)     →  shared TF-IDF vocabulary    │
+│                              ↓                                   │
+│  transform_user(skills, weights) →  weighted pseudo-document    │
+│                              ↓                                   │
+│        is_zero_vector()?  → [YES] → cold_start_survey()         │
+│                              ↓ [NO]                              │
+│   RecommendationEngine.score() →  cosine_similarity(user, items)│
+└─────────────────────┬──────────────────────────────────────────┘
                       │
-┌─────────────────────▼───────────────────────────────────────┐
-│                   OUTPUT STAGE                              │
-│                                                             │
-│  Ranked MatchResults  →  #1 Role/Platform/Tool + score      │
-│                       →  #2 Role/Platform/Tool + score      │
-│                       →  #3 Role/Platform/Tool + score      │
-│                                                             │
-│  Full ranked list is NEVER displayed (prevents overload)    │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────▼──────────────────────────────────────────┐
+│                   OUTPUT STAGE                                  │
+│                                                                  │
+│  rank()  →  sort_values(by=score, descending)                   │
+│         →  get_top_n(n=3)  →  List[MatchResult]                  │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## ⚙️ Configurable Parameters
 
-Nothing is hardcoded. All key values are exposed as parameters in `TechStackRecommender`:
+Nothing is hardcoded. All key values are exposed as parameters on `TechStackRecommender.recommend()`:
 
 ```python
-recommender = TechStackRecommender(
-    data_path     = "raw_skills.csv",   # Path to item catalogue
-    top_n         = 3,                  # Number of recommendations to return
-    min_skills    = 3,                  # Minimum skills required (cold‑start guard)
-    enable_ratings = True,              # Toggle 1‑5 importance weighting survey
-)
-
-# TF‑IDF vectorizer parameters (inside FeatureExtractor)
-vectorizer = TfidfVectorizer(
-    lowercase     = True,
-    stop_words    = "english",          # Remove generic filler words
-    ngram_range   = (1, 2),             # Capture phrases like "cloud computing"
-    max_features  = 500,                # Cap vocabulary size for large datasets
-    token_pattern = r"(?u)\b[a-zA-Z][a-zA-Z0-9+#./-]*\b",  # Preserves "C++", "UI/UX"
+engine.recommend(
+    skills   = ["Python", "Cloud Computing", "Automation"],          # min. 3 required
+    weights  = {"Python": 5, "Cloud Computing": 4, "Automation": 3}, # optional, 1-5 scale
+    top_n    = 3,                                                    # how many matches to return
 )
 ```
 
-To scale this pipeline to a larger dataset, simply replace `raw_skills.csv` with any CSV containing `Job_Role` and `Required_Skills` columns — the rest of the pipeline requires **zero changes**.
+`MIN_REQUIRED_SKILLS` (in `data_ingestion.py`) and `TOP_N` (in `pipeline.py`) are also exposed as module‑level constants for easy tuning.
+
+To scale this pipeline to a larger dataset, simply point `TechStackRecommender(dataset_path=...)` at a bigger `raw_skills.csv` — same 4‑column schema, zero other code changes required.
 
 ---
 
 ## 🧠 Key Concepts Explained
 
-### Why Content‑Based Filtering instead of Collaborative Filtering?
-Collaborative Filtering requires **other users' behaviour data** (ratings, clicks, purchase history) to find "users like you." In a cold‑start scenario with a single new user, that data simply doesn't exist. Content‑Based Filtering works with **zero other users** — it matches the user's attributes directly against item attributes, making it the only viable choice for this problem.
+### Why Content‑Based Filtering, not Collaborative Filtering?
+Collaborative filtering needs *other users'* interaction history ("people who picked AWS also picked Kubernetes"). DecodeLabs' brief is a single user with a cold profile and no peer data to lean on — content‑based filtering only needs the item's own attributes, so it works correctly from the very first user, day one.
 
----
-
-### Why TF‑IDF instead of raw term counts?
-Consider two skills: *"Python"* and *"Kubernetes"*. If *"Python"* appears in 90% of all job listings, a raw count gives it high weight in every recommendation — making all results look the same. TF‑IDF solves this:
+### Why TF‑IDF instead of raw word counts or Binary Overlap?
+A binary 1/0 "does this item mention Python" flag treats "python" identically whether it's the item's defining skill or a passing mention — and treats every term as equally important. TF‑IDF fixes both:
 
 ```
-TF‑IDF(term, document) = TF(term, document) × IDF(term)
-
-where:
-  TF  = (occurrences of term in document) / (total terms in document)
-  IDF = log( (total documents) / (documents containing term) )
+TF(term, doc)  =  count of term in doc
+IDF(term)      =  log( N_items / N_items_containing_term )
+TF-IDF score   =  TF × IDF
 ```
 
-- **High IDF:** *"Kubernetes"* appears in few documents → rewarded as discriminative
-- **Low IDF:** *"Python"* appears nearly everywhere → penalized as generic
+A term like "automation" that appears in most items gets a near‑zero IDF — it can't dominate a match. A term like "pytorch" appearing in only one item gets a high IDF — it's treated as a strong, specific signal.
 
-The result: rare, specific skills drive the recommendation; common skills become tie‑breakers.
-
----
-
-### Why Cosine Similarity instead of Euclidean Distance?
-Euclidean distance measures **magnitude** — the straight‑line distance between two points. In high‑dimensional text vector spaces (500+ features), Euclidean distance breaks down catastrophically:
-
-- **Sparse vectors:** Most entries are zero. Euclidean distance treats all zeros as "close," even when the non‑zero terms are completely different.
-- **Length sensitivity:** A job listing with 10 required skills will always be "farther" from a user with 3 skills than a listing with 3 skills — even if the user is a perfect match for the 10‑skill role.
-
-Cosine Similarity measures the **angle** between vectors, ignoring magnitude entirely:
+### Why Cosine Similarity over Euclidean Distance?
+KNN (Project 2) uses Euclidean distance because all four Iris features sit on comparable numeric scales. TF‑IDF vectors are nothing like that: high‑dimensional, extremely sparse, and variable in magnitude purely based on how many terms a description happens to use. Euclidean distance is sensitive to that magnitude — a richly‑weighted user profile would look artificially "far" from a short item description. Cosine similarity ignores magnitude entirely and measures only the angle between two vectors:
 
 ```
-Cosine(A, B) = (A · B) / (||A|| × ||B||)
-
-  = 1.0  →  vectors point in the same direction (perfect match)
-  = 0.0  →  vectors are orthogonal (no overlap)
+cosine(A, B)  =  (A · B) / (||A|| × ||B||)
 ```
 
-> **Why it matters here:** A user who lists *"Python, Docker, Kubernetes"* and a job role requiring *"Python, Docker, Kubernetes, Terraform, CI/CD, Helm, AWS, Prometheus, Grafana, Istio"* will still score high on Cosine Similarity — because the user's three skills point in the *same direction* as the role's skill vector. Euclidean distance would incorrectly rank this match far lower.
+Two vectors pointing in the same direction score 1.0 regardless of length — exactly the scale‑invariance sparse text vectors need.
 
----
+### Why two separate Cold‑Start guards?
+> **Critical rule:** a user profile can fail in two different ways, and only one of them is visible before vectorization.
 
-### Why Strict Vocabulary Alignment?
-If the user's skills are vectorized with a **separate** TF‑IDF instance (naively calling `fit_transform()` on user input alone), the resulting vector lives in a **different feature space** than the item matrix. The dimensions won't align, and Cosine Similarity becomes mathematically meaningless.
+- **Structural** (`data_ingestion.py`): fewer than `MIN_REQUIRED_SKILLS = 3` valid strings were supplied. Caught immediately, before any math runs.
+- **Semantic** (`pipeline.py`): 3+ skills were supplied, but none exist anywhere in the fitted vocabulary — the resulting TF‑IDF vector has `nnz == 0`. This only becomes visible *after* vectorization, which is why it's checked in the orchestrator rather than at ingestion.
 
-**The fix:** Fit the vectorizer **once** on the item catalogue. When the user arrives, call only `transform()` — projecting the user into the same vocabulary space. This guarantees every dimension means the same thing for both vectors.
+Both paths fall back to the same `cold_start_survey()`, which pulls the most frequent terms straight out of the item dataset itself — so the recovered profile is always grounded in real, scorable vocabulary, never a guess.
 
-> **Critical rule:** `fit()` on items only. `transform()` on the user. Never `fit_transform()` the user. Breaking this rule silently corrupts the similarity scores.
+### Why weight preferences instead of just listing skills?
+Weighting is implemented as repeated term frequency, not a separate formula bolted onto cosine similarity afterward. Rating "Python" 5/5 repeats that token 5× in the user's pseudo‑document before vectorization, which legitimately increases its TF component — honoring the actual TF‑IDF math instead of faking a binary flag.
 
----
-
-### The Two Cold‑Start Guards — Structural and Semantic
-
-Most systems only check "did the user provide input?" This pipeline adds a second, deeper guard:
-
-| Guard | Type | Condition | What It Catches |
-|-------|------|-----------|-----------------|
-| **#1** | Structural | `len(skills) < 3` | Empty or insufficient input — user hasn't engaged |
-| **#2** | Semantic | `user_vector.nnz == 0` | User provided 3+ skills, but **none** exist in the vocabulary — e.g., `["esperanto", "underwater basket weaving", "interpretive dance"]` |
-
-> Guard #2 is subtle but critical: without it, Cosine Similarity returns `0.0` for every item, producing a "Top‑3" that is mathematically valid but practically useless. The semantic guard detects this and re‑prompts the user — ensuring every recommendation has genuine signal.
-
----
-
-### Bonus: Weighted Preference Scoring (1–5 Scale)
-Most content‑based recommenders treat all user skills equally. This pipeline introduces a **pre‑similarity bias** through honest TF manipulation:
-
-- User rates *"Python"* as **5** (critical) and *"Docker"* as **2** (nice‑to‑have)
-- The synthetic user document becomes: `"python python python python python docker docker"`
-- TF‑IDF naturally assigns *"Python"* a higher term frequency — no post‑hoc score multiplier needed
-
-This keeps the math transparent: the vectorizer does exactly what it was designed to do, and the bias is fully auditable in the user document string.
+### What changed to support the UI, and what didn't
+Adding `app.py` required exactly two additive changes to the tested backend, both pure introspection — zero existing logic was modified:
+- `DataIngestion.get_suggested_skills()` — a public wrapper around the already‑existing trending‑term extractor, so the UI can show real, in‑vocabulary skill suggestions instead of guessing.
+- `TechStackRecommender.last_profile` — records which `UserProfile` produced the most recent `.recommend()` call, so the UI can detect when a cold‑start guard fired and explain it to the user. `.recommend()`'s signature and return value are unchanged; `main.py` and every existing call site behave identically (verified by re‑running the original demo before and after — byte‑identical output).
 
 ---
 
@@ -271,18 +222,18 @@ This keeps the math transparent: the vectorizer does exactly what it was designe
 
 | Library | Version | Purpose |
 |---------|---------|---------|
-| `scikit-learn` | 1.3+ | TfidfVectorizer, cosine_similarity |
-| `numpy` | 1.24+ | Numerical array operations, argsort |
-| `pandas` | 2.0+ | Data loading, DataFrame manipulation, result formatting |
-| `logging` | stdlib | Pipeline‑stage logging and cold‑start trigger events |
+| `scikit-learn` | 1.3+ | `TfidfVectorizer`, `cosine_similarity` |
+| `pandas` | 2.0+ | Item dataset handling, ranking and sorting |
+| `scipy` | 1.10+ | Sparse vector representation (`csr_matrix`) |
+| `streamlit` | 1.38+ | Optional interactive UI (presentation layer only) |
 
 ---
 
 ## 📚 Project Context
 
-This project was assigned and completed during my AI internship at [DecodeLabs](https://www.decodelabs.tech/). Project 3 specifically demonstrates the transition from classification (Project 2's KNN) to **Recommendation Systems** — where the algorithm must rank items by relevance rather than assign discrete labels. It implements the same strict **IPO discipline** as Project 2, ensuring every recommendation is traceable to a mathematical operation, never a heuristic rule or random fallback.
+This project was assigned and completed during my AI internship at [DecodeLabs](https://www.decodelabs.tech/). Project 3 builds directly on Project 2: where Project 2 learned to predict a known *label* from training data (Supervised Learning), Project 3 has no labels at all — it matches an unlabelled user profile directly against item attributes using vector‑space geometry (Content‑Based Filtering).
 
-**Methodology:** Content‑Based Filtering — matching user profiles directly to item attributes without requiring other users' behavioural data.
+**Dataset:** `raw_skills.csv` — an 18‑row sample catalogue of Platforms, Tools, and Job Roles (schema: `item_id, item_name, category, description`). Swap in a real DecodeLabs dataset with the same schema and zero code changes are required.
 
 ---
 
@@ -301,10 +252,7 @@ This project was assigned and completed during my AI internship at [DecodeLabs](
 
 <div align="center">
 
-*Every recommendation is the output of vector‑space math — not a guess.*  
+*Built with precision. Documented with purpose.*  
 **If this helped you, consider giving it a ⭐**
 
 </div>
-
-
-
