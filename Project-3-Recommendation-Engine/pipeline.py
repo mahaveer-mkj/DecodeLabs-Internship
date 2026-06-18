@@ -15,7 +15,7 @@ from typing import Dict, List, Optional
 
 from data_ingestion import DataIngestion
 from feature_extractor import FeatureExtractor
-from models import MatchResult
+from models import MatchResult, UserProfile
 from recommendation_engine import RecommendationEngine
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -38,6 +38,10 @@ class TechStackRecommender:
         self.ingestion = DataIngestion(dataset_path)
         self.extractor = FeatureExtractor()
         self._engine: Optional[RecommendationEngine] = None
+        # Read-only introspection hook for UI layers: which UserProfile
+        # actually produced the most recent recommend() call. Does not
+        # change recommend()'s signature or return type.
+        self.last_profile: Optional[UserProfile] = None
 
     def load(self) -> None:
         """One-time setup: load items and fit the shared TF-IDF vocabulary."""
@@ -102,4 +106,5 @@ class TechStackRecommender:
                 "profile, not raw user input."
             )
 
+        self.last_profile = profile  # UI introspection hook; doesn't affect return value
         return top_matches
