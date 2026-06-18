@@ -1,3 +1,8 @@
+# This file is the exact console capture from `python main.py` (the CLI deliverable).
+# A live interactive version of this same engine is also available here:
+# https://thedigitalmatchmaker.streamlit.app/
+# ------------------------------------------------------------------------------
+
 INFO: Loaded 18 items from raw_skills.csv
 INFO: TF-IDF vocabulary fitted: 76 terms across 18 items.
 
