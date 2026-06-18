@@ -33,7 +33,7 @@ The internship follows a deliberate learning arc — starting from the absolute 
 |---|---------|---------|--------|--------|
 | 1 | [🤖 WavYy — Rule-Based AI Chatbot](#project-1--wayyy--rule-based-ai-chatbot) | Control Flow, Hash Maps, Decision Logic | ✅ Complete | [`Project-1-Chatbot`](./Project-1-Chatbot/) |
 | 2 | [🌸 Iris KNN Classification Pipeline](#project-2--iris-knn-classification-pipeline) | Supervised Learning, KNN, F1 Score | ✅ Complete | [`Project-2-KNN-Classification`](./Project-2-KNN-Classification/) |
-| 3 | [🎯 Tech Stack Recommender — "The Digital Matchmaker"](#project-3--tech-stack-recommender--the-digital-matchmaker) | Content-Based Filtering, TF-IDF, Cosine Similarity | ✅ Complete | [`Project-3-Recommendation-Engine`](./Project-3-Recommendation-Engine/) |
+| 3 | [🎯 Tech Stack Recommender — "The Digital Matchmaker"](#project-3--tech-stack-recommender--the-digital-matchmaker) · [🔗 Live Demo](https://thedigitalmatchmaker.streamlit.app/) | Content-Based Filtering, TF-IDF, Cosine Similarity | ✅ Complete | [`Project-3-Recommendation-Engine`](./Project-3-Recommendation-Engine/) |
 | 4 | 🔒 Coming Soon | — | ⏳ Upcoming | — |
 
 ---
@@ -95,7 +95,8 @@ python iris_knn_pipeline.py
 ---
 
 ### Project 3 · Tech Stack Recommender — "The Digital Matchmaker"
-> **Folder:** [`Project-3-Recommendation-Engine/`](./Project-3-Recommendation-Engine/)
+> **Folder:** [`Project-3-Recommendation-Engine/`](./Project-3-Recommendation-Engine/)  
+> **Live Demo:** [thedigitalmatchmaker.streamlit.app](https://thedigitalmatchmaker.streamlit.app/)
 
 A content-based recommendation engine that maps user skills/interests to platforms, tools, and job roles using TF-IDF vectorization and Cosine Similarity — strictly avoiding Euclidean distance and binary overlap. Includes dual cold-start handling (structural and semantic) so a user is never left with a zero vector, plus a bonus 1-5 preference-weighting layer.
 
