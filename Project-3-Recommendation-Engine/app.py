@@ -15,10 +15,19 @@ Run:
 """
 
 import html
+from pathlib import Path
 
 import streamlit as st
 
 from pipeline import TechStackRecommender
+
+# Resolve raw_skills.csv relative to THIS file's location, never to the
+# process's current working directory. Locally, "streamlit run app.py"
+# from inside this folder happens to make those the same thing -- but
+# Streamlit Community Cloud mounts the repo and runs from the repo root,
+# not from this subfolder, so a bare relative path silently breaks there.
+APP_DIR = Path(__file__).resolve().parent
+DATASET_PATH = APP_DIR / "raw_skills.csv"
 
 st.set_page_config(
     page_title="The Digital Matchmaker — DecodeLabs Project 3",
@@ -34,7 +43,7 @@ st.set_page_config(
 # ---------------------------------------------------------------------
 @st.cache_resource
 def load_engine() -> TechStackRecommender:
-    engine = TechStackRecommender("raw_skills.csv")
+    engine = TechStackRecommender(str(DATASET_PATH))
     engine.load()
     return engine
 
