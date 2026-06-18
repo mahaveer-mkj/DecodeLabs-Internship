@@ -157,6 +157,17 @@ class DataIngestion:
         logger.info("Onboarding survey populated profile with: %s", merged)
         return UserProfile(skills=merged, weights=weights, is_cold_start=True)
 
+    def get_suggested_skills(self, top_k: int = 8) -> List[str]:
+        """
+        Public-facing version of the trending-term extractor, intended for
+        UI layers (e.g. a Streamlit front-end) that want to show a user
+        real, in-vocabulary skill suggestions before they type anything.
+        Pure read-only convenience wrapper -- no change to ingestion logic.
+        """
+        if self._item_df is None:
+            self.load_item_dataset()
+        return self._extract_trending_terms(top_k=top_k)
+
     def _extract_trending_terms(self, top_k: int = 5) -> List[str]:
         """
         Naive but effective trending-term extractor: counts raw token
