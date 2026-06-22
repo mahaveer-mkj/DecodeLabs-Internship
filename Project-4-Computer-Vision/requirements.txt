@@ -1,0 +1,20 @@
+# DecodeLabs | Project 4: Building the Machine's Optic Nerve
+# Python 3.9+
+#
+# PATH 1 (OCR) dependencies:
+pytesseract>=0.3.10
+opencv-python>=4.8.0
+numpy>=1.24.0
+pillow>=10.0.0
+#
+# PATH 2 (Object Detection) dependencies:
+# opencv-python and numpy already listed above — no additional packages required.
+#
+# NOTE: Tesseract OCR binary must be installed separately (not a pip package):
+#   Linux : sudo apt-get install tesseract-ocr
+#   macOS : brew install tesseract
+#   Windows: https://github.com/UB-Mannheim/tesseract/wiki
+#
+# NOTE: MobileNet-SSD model files must be downloaded separately (see README.md):
+#   MobileNetSSD_deploy.prototxt
+#   MobileNetSSD_deploy.caffemodel
