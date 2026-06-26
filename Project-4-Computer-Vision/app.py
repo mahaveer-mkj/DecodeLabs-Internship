@@ -18,6 +18,8 @@ import io
 import os
 import tempfile
 import time
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # ── Page config (must be FIRST Streamlit call) ───────────────────────────────
 st.set_page_config(
