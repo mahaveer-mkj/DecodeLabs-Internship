@@ -58,6 +58,21 @@ except ImportError as e:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# ░░  SAFE OCR HELPER – clears pytesseract cache to avoid TesseractNotFoundError
+# ─────────────────────────────────────────────────────────────────────────────
+def safe_ocr_call(preprocessed_image, config):
+    """Call pytesseract.image_to_data after resetting its internal cache."""
+    # Force a fresh lookup of the Tesseract binary (bypasses any previous failure)
+    pytesseract.pytesseract._tesseract_version = None
+    pytesseract.pytesseract._tesseract_version_date = None
+    return pytesseract.image_to_data(
+        preprocessed_image,
+        config=config,
+        output_type=pytesseract.Output.DICT
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # ░░  CUSTOM CSS
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -287,6 +302,8 @@ if IS_OCR:
 
         with st.spinner("Running OCR + confidence filter …"):
             t1 = time.time()
+            # Primary OCR call – already has cache clearing inside run_ocr_with_confidence_filter
+            # but we'll use our safe wrapper for the secondary raw_data call below.
             filtered_text, confident_words = run_ocr_with_confidence_filter(
                 preprocessed,
                 config=tesseract_config,
@@ -296,13 +313,24 @@ if IS_OCR:
 
         accepted = len(confident_words)
 
-        # Get total raw word count for rejected calculation
-        raw_data = pytesseract.image_to_data(
-            preprocessed, config=tesseract_config,
-            output_type=pytesseract.Output.DICT
-        )
-        total_raw = sum(1 for t in raw_data["text"] if t.strip() != "")
-        rejected  = total_raw - accepted
+        # Safely get total raw word count using the same cache‑safe function
+        try:
+            raw_data = safe_ocr_call(preprocessed, tesseract_config)
+            total_raw = sum(1 for t in raw_data["text"] if t.strip() != "")
+        except pytesseract.TesseractNotFoundError:
+            st.error(
+                "❌ Tesseract OCR engine not found. Even though the path is set, "
+                "the system cannot execute it. Please check that the file\n"
+                "`C:\\Program Files\\Tesseract-OCR\\tesseract.exe` exists and is executable. "
+                "You may need to install the Visual C++ Redistributable.\n"
+                "Once fixed, restart this app."
+            )
+            st.stop()
+        except Exception as e:
+            st.error(f"❌ Unexpected error during OCR: {e}")
+            st.stop()
+
+        rejected = total_raw - accepted
 
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         with col_m1:
@@ -431,9 +459,26 @@ else:
 
     @st.cache_resource(show_spinner="Loading MobileNet-SSD model …")
     def get_model():
-        return load_model(PROTOTXT_PATH, CAFFEMODEL_PATH)
+        try:
+            return load_model(PROTOTXT_PATH, CAFFEMODEL_PATH)
+        except cv2.error as e:
+            # Most likely a caffemodel/prototxt mismatch
+            raise RuntimeError(
+                f"OpenCV DNN error: {str(e)}\n\n"
+                "This almost always means the .caffemodel file does not match the .prototxt file.\n"
+                "Please download the **correct** MobileNetSSD_deploy.caffemodel (23,147,564 bytes) from:\n"
+                "https://github.com/chuanqi305/MobileNet-SSD/raw/master/MobileNetSSD_deploy.caffemodel\n"
+                "and replace the one in your project folder."
+            )
 
-    net = get_model()
+    try:
+        net = get_model()
+    except RuntimeError as e:
+        st.error(f"❌ {e}")
+        st.stop()
+    except Exception as e:
+        st.error(f"❌ Unexpected error loading model: {e}")
+        st.stop()
 
     uploaded = st.file_uploader(
         "Drop your image here",
