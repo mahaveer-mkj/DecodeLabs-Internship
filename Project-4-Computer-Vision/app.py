@@ -13,7 +13,6 @@ import platform
 # ── Only set the Tesseract path on a local Windows machine ──────────────────
 import pytesseract
 if platform.system() == 'Windows' and not os.environ.get('STREAMLIT_SHARING'):
-    # Local Windows fallback – the cloud has tesseract on PATH automatically
     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 import streamlit as st
@@ -22,6 +21,7 @@ import numpy as np
 from PIL import Image
 import io
 import time
+...
 
 # ── Page config (must be FIRST Streamlit call) ───────────────────────────────
 st.set_page_config(
