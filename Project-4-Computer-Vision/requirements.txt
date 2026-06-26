@@ -1,20 +1,19 @@
 # DecodeLabs | Project 4: Building the Machine's Optic Nerve
-# Python 3.9+
+# requirements.txt — covers BOTH local CLI and Streamlit deployment
 #
-# PATH 1 (OCR) dependencies:
-pytesseract>=0.3.10
-opencv-python>=4.8.0
+# Install:  pip install -r requirements.txt
+#
+# ── Core computer vision ──────────────────────────────────────────────────────
+opencv-python-headless>=4.8.0
 numpy>=1.24.0
 pillow>=10.0.0
 #
-# PATH 2 (Object Detection) dependencies:
-# opencv-python and numpy already listed above — no additional packages required.
+# ── OCR (Path 1) ──────────────────────────────────────────────────────────────
+pytesseract>=0.3.10
 #
-# NOTE: Tesseract OCR binary must be installed separately (not a pip package):
-#   Linux : sudo apt-get install tesseract-ocr
-#   macOS : brew install tesseract
-#   Windows: https://github.com/UB-Mannheim/tesseract/wiki
+# ── Streamlit UI ──────────────────────────────────────────────────────────────
+streamlit>=1.38.0
+pandas>=2.0.0
 #
-# NOTE: MobileNet-SSD model files must be downloaded separately (see README.md):
-#   MobileNetSSD_deploy.prototxt
-#   MobileNetSSD_deploy.caffemodel
+# ── Utilities ─────────────────────────────────────────────────────────────────
+scipy>=1.10.0
