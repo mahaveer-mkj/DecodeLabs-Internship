@@ -40,6 +40,8 @@ import pytesseract                # Wrapper — calls Google's Tesseract binary
 from PIL import Image             # Pillow  — alternative image loader (optional)
 import os
 import sys
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # ── OPTIONAL: point to your Tesseract binary if it is not on PATH ──────────
 # Uncomment and edit the line below if Tesseract is not found automatically.
