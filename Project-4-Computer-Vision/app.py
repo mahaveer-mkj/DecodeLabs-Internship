@@ -10,6 +10,17 @@
 import pytesseract
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
+# ── Force immediate version check (caches a SUCCESS result) ──────────────────
+# Also add the Tesseract folder to PATH so the subprocess finds its own DLLs
+os.environ['PATH'] = r'C:\Program Files\Tesseract-OCR' + os.pathsep + os.environ.get('PATH', '')
+try:
+    version = pytesseract.get_tesseract_version()
+    print(f"✅ Tesseract {version} is ready.")
+except pytesseract.TesseractNotFoundError:
+    import sys
+    print("❌ Tesseract not found at the expected location. Exiting.")
+    sys.exit(1)
+
 import streamlit as st
 import cv2
 import numpy as np
