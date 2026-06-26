@@ -208,6 +208,11 @@ def run_ocr_with_confidence_filter(
     # image_to_data() returns a TSV string with columns:
     #   level | page_num | block_num | par_num | line_num | word_num |
     #   left  | top      | width     | height  | conf     | text
+
+   pytesseract.pytesseract._tesseract_version = None
+   pytesseract.pytesseract._tesseract_version_date = None
+
+
     raw_data = pytesseract.image_to_data(
         binary_image,
         config=config,
