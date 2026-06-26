@@ -3,12 +3,12 @@
   DecodeLabs | Project 4: Building the Machine's Optic Nerve
   Streamlit UI — app.py
   Author  : Mahaveer (AI Intern, DecodeLabs)
-
-  This file is a PRESENTATION LAYER only.
-  All core logic lives in path1_ocr.py and path2_object_detection.py.
-  app.py imports the pipeline functions directly — no logic is duplicated.
 ================================================================================
 """
+
+# ── Set Tesseract path FIRST before any other imports that use pytesseract ───
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 import streamlit as st
 import cv2
@@ -16,10 +16,7 @@ import numpy as np
 from PIL import Image
 import io
 import os
-import tempfile
 import time
-import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # ── Page config (must be FIRST Streamlit call) ───────────────────────────────
 st.set_page_config(
@@ -30,7 +27,6 @@ st.set_page_config(
 )
 
 # ── Import pipeline functions from the core scripts ──────────────────────────
-# This is the same pattern as Project 3's app.py importing TechStackRecommender
 try:
     from path1_ocr import (
         preprocess_for_ocr,
@@ -38,6 +34,7 @@ try:
         annotate_image_ocr,
     )
     OCR_AVAILABLE = True
+    OCR_IMPORT_ERROR = ""
 except ImportError as e:
     OCR_AVAILABLE = False
     OCR_IMPORT_ERROR = str(e)
@@ -54,20 +51,19 @@ try:
         CAFFEMODEL_PATH,
     )
     DETECTION_AVAILABLE = True
+    DETECTION_IMPORT_ERROR = ""
 except ImportError as e:
     DETECTION_AVAILABLE = False
     DETECTION_IMPORT_ERROR = str(e)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# ░░  CUSTOM CSS — matches DecodeLabs indigo brand colour from Project 3
+# ░░  CUSTOM CSS
 # ─────────────────────────────────────────────────────────────────────────────
 
 st.markdown("""
 <style>
-  /* Brand colour: indigo (#4F46E5) matching Project 3 theme */
   .stApp { background-color: #0f0f1a; color: #e2e8f0; }
-
   .main-title {
     font-size: 2.6rem; font-weight: 800;
     background: linear-gradient(135deg, #4F46E5, #818CF8);
@@ -123,21 +119,17 @@ st.markdown("""
 # ─────────────────────────────────────────────────────────────────────────────
 
 def pil_to_bgr(pil_img: Image.Image) -> np.ndarray:
-    """Convert PIL Image → OpenCV BGR numpy array."""
     rgb = np.array(pil_img.convert("RGB"))
     return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
 
 def bgr_to_pil(bgr: np.ndarray) -> Image.Image:
-    """Convert OpenCV BGR numpy array → PIL Image for Streamlit display."""
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     return Image.fromarray(rgb)
 
 def gray_to_pil(gray: np.ndarray) -> Image.Image:
-    """Convert grayscale numpy array → PIL Image."""
     return Image.fromarray(gray)
 
 def img_to_bytes(pil_img: Image.Image, fmt="PNG") -> bytes:
-    """Encode PIL Image to bytes for st.download_button."""
     buf = io.BytesIO()
     pil_img.save(buf, format=fmt)
     return buf.getvalue()
@@ -200,9 +192,11 @@ with st.sidebar:
                 11: "PSM 11 — Sparse text / labels",
             }[x],
         )
-        oem_mode = 3   # always LSTM
+        oem_mode = 3
         tesseract_config = f"--oem {oem_mode} --psm {psm_choice}"
         st.caption(f"Config: `{tesseract_config}`")
+        # Give conf_threshold a default so the variable always exists
+        conf_threshold = 80
     else:
         st.markdown("**Confidence Threshold**")
         conf_threshold = st.slider(
@@ -211,9 +205,10 @@ with st.sidebar:
             help="Detections below this value are dropped as false positives."
         )
         st.caption(f"Gatekeeper: `if confidence >= {conf_threshold/100:.2f}`")
+        tesseract_config = "--oem 3 --psm 6"   # default (unused in Path 2)
 
     st.divider()
-    confidence_threshold = (conf_threshold / 100.0) if not IS_OCR else 0.80
+    confidence_threshold = conf_threshold / 100.0
 
     st.markdown("**About**")
     st.caption(
@@ -248,7 +243,7 @@ if IS_OCR:
         bgr_original = pil_to_bgr(pil_original)
         h, w = bgr_original.shape[:2]
 
-        # ── Rule 1 display ───────────────────────────────────────────────────
+        # ── Rule 1 ───────────────────────────────────────────────────────────
         st.markdown('<p class="section-header">RULE 1 — Library Integration</p>', unsafe_allow_html=True)
         col_r1a, col_r1b = st.columns(2)
         with col_r1a:
@@ -299,11 +294,9 @@ if IS_OCR:
             )
             elapsed_ocr = time.time() - t1
 
-        total_candidates = len(confident_words)   # already filtered
         accepted = len(confident_words)
 
-        # get rejected count by running raw data pass
-        import pytesseract
+        # Get total raw word count for rejected calculation
         raw_data = pytesseract.image_to_data(
             preprocessed, config=tesseract_config,
             output_type=pytesseract.Output.DICT
@@ -313,19 +306,19 @@ if IS_OCR:
 
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         with col_m1:
-            st.markdown('<div class="metric-card"><div class="metric-value">'
+            st.markdown(f'<div class="metric-card"><div class="metric-value">'
                         f'{total_raw}</div><div class="metric-label">Total Candidates</div></div>',
                         unsafe_allow_html=True)
         with col_m2:
-            st.markdown('<div class="metric-card"><div class="metric-value" style="color:#22c55e">'
+            st.markdown(f'<div class="metric-card"><div class="metric-value" style="color:#22c55e">'
                         f'{accepted}</div><div class="metric-label">Accepted ≥ 80%</div></div>',
                         unsafe_allow_html=True)
         with col_m3:
-            st.markdown('<div class="metric-card"><div class="metric-value" style="color:#ef4444">'
+            st.markdown(f'<div class="metric-card"><div class="metric-value" style="color:#ef4444">'
                         f'{rejected}</div><div class="metric-label">Rejected &lt; 80%</div></div>',
                         unsafe_allow_html=True)
         with col_m4:
-            st.markdown('<div class="metric-card"><div class="metric-value">'
+            st.markdown(f'<div class="metric-card"><div class="metric-value">'
                         f'{elapsed_ocr*1000:.0f}ms</div><div class="metric-label">Inference Time</div></div>',
                         unsafe_allow_html=True)
 
@@ -361,21 +354,19 @@ if IS_OCR:
         st.markdown("**Annotated image — green boxes = words accepted by the 80% gatekeeper**")
         st.image(annotated_pil, use_container_width=True)
 
-        # Word-level breakdown table
         if confident_words:
             st.markdown("**Word-level confidence breakdown**")
             import pandas as pd
             df = pd.DataFrame([{
-                "Word"      : w["text"],
-                "Confidence": f"{w['confidence']*100:.1f}%",
-                "Left (px)" : w["left"],
-                "Top (px)"  : w["top"],
-                "Width (px)": w["width"],
+                "Word"       : w["text"],
+                "Confidence" : f"{w['confidence']*100:.1f}%",
+                "Left (px)"  : w["left"],
+                "Top (px)"   : w["top"],
+                "Width (px)" : w["width"],
                 "Height (px)": w["height"],
             } for w in confident_words])
             st.dataframe(df, use_container_width=True, hide_index=True)
 
-        # Download buttons
         st.markdown("**Download outputs**")
         col_dl1, col_dl2 = st.columns(2)
         with col_dl1:
@@ -414,13 +405,15 @@ else:
     st.markdown(
         "Upload any real-world scene photograph. MobileNet-SSD runs a forward pass, "
         "generates up to 100 candidates, and the confidence gatekeeper filters them down "
-        "to only verified detections. Bounding boxes are decoded from normalised coordinates "
-        "back to pixel space and drawn on the original image."
+        "to only verified detections."
     )
 
-    # ── Check model files exist ──────────────────────────────────────────────
-    prototxt_ok    = os.path.isfile(PROTOTXT_PATH)
-    caffemodel_ok  = os.path.isfile(CAFFEMODEL_PATH)
+    if not DETECTION_AVAILABLE:
+        st.error(f"⚠️ Object Detection module failed to import: {DETECTION_IMPORT_ERROR}")
+        st.stop()
+
+    prototxt_ok   = os.path.isfile(PROTOTXT_PATH)
+    caffemodel_ok = os.path.isfile(CAFFEMODEL_PATH)
 
     if not prototxt_ok or not caffemodel_ok:
         st.error("⚠️ Model files missing. Cannot run Object Detection.")
@@ -436,7 +429,6 @@ else:
         """)
         st.stop()
 
-    # ── Load model (cached so it only loads once per session) ────────────────
     @st.cache_resource(show_spinner="Loading MobileNet-SSD model …")
     def get_model():
         return load_model(PROTOTXT_PATH, CAFFEMODEL_PATH)
@@ -458,15 +450,11 @@ else:
         st.markdown('<p class="section-header">RULE 1 — Library Integration</p>', unsafe_allow_html=True)
         col_r1a, col_r1b = st.columns(2)
         with col_r1a:
-            if DETECTION_AVAILABLE:
-                gate_pass("OpenCV cv2.dnn loaded successfully")
-                gate_pass(f"MobileNet-SSD: {len(CLASS_LABELS)-1} PASCAL VOC classes")
-            else:
-                gate_fail(f"Import failed: {DETECTION_IMPORT_ERROR}")
-                st.stop()
+            gate_pass("OpenCV cv2.dnn loaded successfully")
+            gate_pass(f"MobileNet-SSD: {len(CLASS_LABELS)-1} PASCAL VOC classes")
         with col_r1b:
             gate_pass(f"Image loaded — {w}×{h} px")
-            gate_pass(f"Model files: prototxt ✓  caffemodel ✓")
+            gate_pass("Model files: prototxt ✓  caffemodel ✓")
 
         # ── Rule 2 — Blob construction ────────────────────────────────────────
         st.markdown('<p class="section-header">RULE 2 — Pre-Processing (4D Blob)</p>', unsafe_allow_html=True)
@@ -492,21 +480,20 @@ else:
 
         with st.spinner(f"Running forward pass + applying {conf_threshold}% confidence filter …"):
             t1 = time.time()
-            raw_detections  = run_inference(net, blob)
-            verified        = filter_and_decode_detections(
+            raw_detections = run_inference(net, blob)
+            verified       = filter_and_decode_detections(
                 raw_detections,
                 image_shape=bgr_original.shape,
                 confidence_threshold=confidence_threshold
             )
             elapsed_inf = time.time() - t1
 
-        total_raw  = raw_detections.shape[2]
-        accepted   = len(verified)
-        rejected   = total_raw - accepted
+        total_raw = raw_detections.shape[2]
+        accepted  = len(verified)
+        rejected  = total_raw - accepted
 
         if conf_threshold != 80:
-            st.info(f"🔒 Cold-start guard: You set {conf_threshold}% (default is 80%). "
-                    f"Gatekeeper rule: `if confidence >= {confidence_threshold:.2f}`")
+            st.info(f"🔒 You set {conf_threshold}%. Gatekeeper rule: `if confidence >= {confidence_threshold:.2f}`")
 
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         with col_m1:
@@ -525,14 +512,12 @@ else:
                         f'{elapsed_inf*1000:.0f}ms</div><div class="metric-label">Inference Time</div></div>',
                         unsafe_allow_html=True)
 
-        st.markdown("")
         gate_pass(f"Gatekeeper applied: `if confidence >= {confidence_threshold:.2f}` — "
                   f"{rejected} false positives dropped")
 
         # ── Rule 4 — Visual Confirmation ──────────────────────────────────────
         st.markdown('<p class="section-header">RULE 4 — Visual Confirmation</p>', unsafe_allow_html=True)
 
-        # Draw bounding boxes
         annotated_bgr = bgr_original.copy()
         np.random.seed(42)
         COLORS = np.random.randint(0, 255, size=(len(CLASS_LABELS), 3), dtype="uint8")
@@ -567,7 +552,6 @@ else:
             st.markdown("**Detections — bounding boxes decoded from normalised coordinates**")
             st.image(bgr_to_pil(annotated_bgr), use_container_width=True)
 
-        # Detection table
         if verified:
             st.markdown("**Detection breakdown**")
             import pandas as pd
@@ -583,7 +567,6 @@ else:
             } for d in verified])
             st.dataframe(df, use_container_width=True, hide_index=True)
 
-        # Download
         annotated_pil = bgr_to_pil(annotated_bgr)
         st.download_button(
             "⬇ Download annotated image (.png)",
@@ -598,7 +581,6 @@ else:
         **Best images for Object Detection:**
         - Clear photographs of people, cars, animals, furniture
         - Well-lit scenes with distinct objects
-        - Photos where objects are not heavily overlapping
 
         **Detectable classes ({len(CLASS_LABELS)-1} total):**
         `{", ".join(CLASS_LABELS[1:])}`
