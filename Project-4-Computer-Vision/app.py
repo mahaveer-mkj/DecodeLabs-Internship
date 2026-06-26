@@ -6,27 +6,21 @@
 ================================================================================
 """
 
-# ── Set Tesseract path FIRST before any other imports that use pytesseract ───
-import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+import os
+import sys
+import platform
 
-# ── Force immediate version check (caches a SUCCESS result) ──────────────────
-# Also add the Tesseract folder to PATH so the subprocess finds its own DLLs
-os.environ['PATH'] = r'C:\Program Files\Tesseract-OCR' + os.pathsep + os.environ.get('PATH', '')
-try:
-    version = pytesseract.get_tesseract_version()
-    print(f"✅ Tesseract {version} is ready.")
-except pytesseract.TesseractNotFoundError:
-    import sys
-    print("❌ Tesseract not found at the expected location. Exiting.")
-    sys.exit(1)
+# ── Only set the Tesseract path on a local Windows machine ──────────────────
+import pytesseract
+if platform.system() == 'Windows' and not os.environ.get('STREAMLIT_SHARING'):
+    # Local Windows fallback – the cloud has tesseract on PATH automatically
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 import streamlit as st
 import cv2
 import numpy as np
 from PIL import Image
 import io
-import os
 import time
 
 # ── Page config (must be FIRST Streamlit call) ───────────────────────────────
