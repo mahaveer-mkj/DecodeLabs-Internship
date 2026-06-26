@@ -17,6 +17,7 @@ import pytesseract
 from PIL import Image
 import os
 import sys
+import traceback
 
 # ── Point pytesseract to the Tesseract binary ────────────────────────────────
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
@@ -148,11 +149,29 @@ def run_ocr_with_confidence_filter(
 
     print(f"\n[►] RULE 3 — Accuracy Benchmarking  (threshold ≥ {confidence_threshold*100:.0f}%) …")
 
-    raw_data = pytesseract.image_to_data(
-        binary_image,
-        config=config,
-        output_type=pytesseract.Output.DICT
-    )
+    # ── CRITICAL FIX: Clear pytesseract's internal cache ─────────────────────
+    # pytesseract remembers a failed version check; this forces a fresh lookup
+    # so the binary at tesseract_cmd is re‑tested every time.
+    pytesseract.pytesseract._tesseract_version = None
+    pytesseract.pytesseract._tesseract_version_date = None
+
+    try:
+        raw_data = pytesseract.image_to_data(
+            binary_image,
+            config=config,
+            output_type=pytesseract.Output.DICT
+        )
+    except pytesseract.TesseractNotFoundError:
+        msg = (
+            "Tesseract OCR engine not found.\n"
+            f"Expected at: {pytesseract.pytesseract.tesseract_cmd}\n"
+            "Please ensure Tesseract is installed and the path is correct.\n"
+            "On Windows, you may also need the Visual C++ Redistributable."
+        )
+        print(f"\n[ERROR] {msg}")
+        traceback.print_exc()
+        # Raise a RuntimeError so the caller (Streamlit or CLI) can handle it
+        raise RuntimeError(msg)
 
     total_words     = 0
     confident_words = []
@@ -273,11 +292,15 @@ if __name__ == "__main__":
     original    = load_image(IMAGE_PATH)
     preprocessed = preprocess_for_ocr(original)
 
-    text, words = run_ocr_with_confidence_filter(
-        preprocessed,
-        config=TESSERACT_CONFIG,
-        confidence_threshold=0.80
-    )
+    try:
+        text, words = run_ocr_with_confidence_filter(
+            preprocessed,
+            config=TESSERACT_CONFIG,
+            confidence_threshold=0.80
+        )
+    except RuntimeError as e:
+        print(f"\n[FATAL] OCR failed: {e}")
+        sys.exit(1)
 
     visual_confirmation_ocr(text, words, output_txt_path="ocr_output.txt")
     annotate_image_ocr(original, words, output_image_path="ocr_annotated.jpg")
